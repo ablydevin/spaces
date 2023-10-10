@@ -15,8 +15,12 @@ export interface TestAppKey {
   expires: number;
 }
 
-export async function createSandboxAblyAPIKey() {
-  console.log('Creating test app');
+export async function createSandboxAblyAPIKey({
+  logger = console.log,
+}: {
+  logger: ((message: string) => void) | null;
+}) {
+  logger?.('Creating test app');
 
   const data = await new Promise<Buffer>((resolve, reject) => {
     const request = https.request(
@@ -59,7 +63,7 @@ export async function createSandboxAblyAPIKey() {
 
   const testApp = JSON.parse(data.toString()) as TestApp;
 
-  console.log('Created test app');
+  logger?.('Created test app');
 
   return testApp.keys[0].keyStr;
 }
