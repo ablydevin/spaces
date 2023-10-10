@@ -7,7 +7,7 @@
  */
 
 import playwright from 'playwright';
-import { createSandboxAblyAPIKey } from './lib/ably_sandbox.js';
+import { createSandboxAblyAPIKey } from '../lib/ably_sandbox.js';
 import { startWebServer } from './lib/web_server.js';
 
 async function runTest(testPageURL: URL) {
