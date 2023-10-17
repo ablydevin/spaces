@@ -12,6 +12,7 @@ import {
   createProfileUpdate,
   createLocationUpdate,
 } from './utilities/test/fakes.js';
+import { mockSubscribeForSpaceEnter } from './utilities/test/mocking.js';
 
 interface SpaceTestContext {
   client: Types.RealtimePromise;
@@ -61,12 +62,14 @@ describe('Space', () => {
 
   describe('enter', () => {
     it<SpaceTestContext>('enter a space successfully', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
       const spy = vi.spyOn(presence, 'enter').mockResolvedValueOnce();
       await space.enter({ name: 'Betty' });
       expect(spy).toHaveBeenNthCalledWith(1, createProfileUpdate({ current: { name: 'Betty' } }));
     });
 
-    it<SpaceTestContext>('returns current space members', async ({ presenceMap, space }) => {
+    it<SpaceTestContext>('returns current space members', async ({ presenceMap, presence, space }) => {
+      mockSubscribeForSpaceEnter(presence);
       presenceMap.set('1', createPresenceMessage('enter'));
       presenceMap.set('2', createPresenceMessage('update', { clientId: '2', connectionId: '2' }));
 
@@ -78,7 +81,8 @@ describe('Space', () => {
       ]);
     });
 
-    it<SpaceTestContext>('retrieves active space members by connection', async ({ presenceMap, space }) => {
+    it<SpaceTestContext>('retrieves active space members by connection', async ({ presenceMap, presence, space }) => {
+      mockSubscribeForSpaceEnter(presence);
       presenceMap.set('1', createPresenceMessage('update'));
 
       await space.enter();
@@ -89,7 +93,8 @@ describe('Space', () => {
       expect(noMember).toBeNull();
     });
 
-    it<SpaceTestContext>('initialises locks', async ({ presenceMap, space }) => {
+    it<SpaceTestContext>('initialises locks', async ({ presenceMap, presence, space }) => {
+      mockSubscribeForSpaceEnter(presence);
       presenceMap.set(
         '1',
         createPresenceMessage('enter', {

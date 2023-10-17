@@ -9,6 +9,7 @@ import {
   createLocationUpdate,
   createSpaceMember,
 } from './utilities/test/fakes.js';
+import { mockSubscribeForSpaceEnter } from './utilities/test/mocking.js';
 
 interface SpaceTestContext {
   client: Types.RealtimePromise;
@@ -48,6 +49,7 @@ describe('Locations', () => {
     });
 
     it<SpaceTestContext>('sends a presence update on location set', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
       const spy = vi.spyOn(presence, 'update');
       await space.enter();
       await space.locations.set('location1');

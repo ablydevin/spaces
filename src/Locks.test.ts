@@ -4,6 +4,7 @@ import { Realtime, Types } from 'ably/promises';
 import Space from './Space.js';
 import type { SpaceMember, LockStatus } from './types.js';
 import { createPresenceMessage } from './utilities/test/fakes.js';
+import { mockSubscribeForSpaceEnter } from './utilities/test/mocking.js';
 
 interface SpaceTestContext {
   client: Types.RealtimePromise;
@@ -49,6 +50,8 @@ describe('Locks', () => {
       space,
       presence,
     }) => {
+      mockSubscribeForSpaceEnter(presence);
+
       await space.enter();
 
       const presenceUpdate = vi.spyOn(presence, 'update');
@@ -71,6 +74,8 @@ describe('Locks', () => {
     });
 
     it<SpaceTestContext>('includes attributes in the lock request when provided', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
+
       await space.enter();
 
       const presenceUpdate = vi.spyOn(presence, 'update');
@@ -88,7 +93,9 @@ describe('Locks', () => {
       expect(presenceUpdate).toHaveBeenCalledWith(presenceMessage);
     });
 
-    it<SpaceTestContext>('errors if a PENDING request already exists', async ({ space }) => {
+    it<SpaceTestContext>('errors if a PENDING request already exists', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
+
       await space.enter();
 
       const lockID = 'test';
@@ -107,7 +114,9 @@ describe('Locks', () => {
         status,
       });
 
-    it<SpaceTestContext>('sets a PENDING request to LOCKED', async ({ space }) => {
+    it<SpaceTestContext>('sets a PENDING request to LOCKED', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
+
       await space.enter();
       const member = (await space.members.getSelf())!;
 
@@ -172,7 +181,9 @@ describe('Locks', () => {
         expectedOtherStatus: undefined,
       },
     ])('$name', ({ desc, otherConnId, otherTimestamp, expectedSelfStatus, expectedOtherStatus }) => {
-      it<SpaceTestContext>(desc, async ({ client, space }) => {
+      it<SpaceTestContext>(desc, async ({ client, space, presence }) => {
+        mockSubscribeForSpaceEnter(presence);
+
         await space.enter();
 
         // process a PENDING request for the other member, which should
@@ -229,7 +240,9 @@ describe('Locks', () => {
       });
     });
 
-    it<SpaceTestContext>('sets a released request to UNLOCKED', async ({ space }) => {
+    it<SpaceTestContext>('sets a released request to UNLOCKED', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
+
       await space.enter();
       const member = (await space.members.getSelf())!;
 
@@ -262,7 +275,9 @@ describe('Locks', () => {
       expect(emitSpy).toHaveBeenCalledWith('update', lockEvent(member, 'unlocked'));
     });
 
-    it<SpaceTestContext>('sets all locks to UNLOCKED when a member leaves', async ({ space }) => {
+    it<SpaceTestContext>('sets all locks to UNLOCKED when a member leaves', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
+
       await space.enter();
       const member = (await space.members.getSelf())!;
 
@@ -311,6 +326,8 @@ describe('Locks', () => {
     });
 
     it<SpaceTestContext>('removes the identified lock request from presence extras', async ({ space, presence }) => {
+      mockSubscribeForSpaceEnter(presence);
+
       await space.enter();
       const member = (await space.members.getSelf())!;
 
