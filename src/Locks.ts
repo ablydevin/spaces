@@ -130,7 +130,8 @@ export default class Locks extends EventEmitter<LocksEventMap> {
     if (!locks) return;
     for (const lock of locks.values()) {
       if (lock.status === 'locked') {
-        return lock;
+        // Return a copy instead of a reference to prevent mutations
+        return { ...lock };
       }
     }
   }
@@ -208,7 +209,8 @@ export default class Locks extends EventEmitter<LocksEventMap> {
     for (const locks of this.locks.values()) {
       for (const lock of locks.values()) {
         if (lock.status === 'locked') {
-          allLocks.push(lock);
+          // Return a copy instead of a reference to prevent mutations
+          allLocks.push({ ...lock });
         }
       }
     }
@@ -384,8 +386,7 @@ export default class Locks extends EventEmitter<LocksEventMap> {
     const lock = this.getLock(id, self.connectionId);
     if (!lock) return;
 
-    lock.status = 'unlocked';
-    lock.reason = undefined;
+    this.setLock({ ...lock, status: 'unlocked', reason: undefined });
     // Send presence update with the updated lock, but delete afterwards so when the
     // message is processed an update event is fired
     this.updatePresence(self);
@@ -635,9 +636,9 @@ export default class Locks extends EventEmitter<LocksEventMap> {
       (pendingLock.timestamp == lock.timestamp && member.connectionId < lock.member.connectionId)
     ) {
       pendingLock.status = 'locked';
-      lock.status = 'unlocked';
-      lock.reason = ERR_LOCK_INVALIDATED();
-      this.emit('update', lock);
+      const updatedLock = { ...lock, status: 'unlocked' as const, reason: ERR_LOCK_INVALIDATED() };
+      this.setLock(updatedLock);
+      this.emit('update', updatedLock);
       return;
     }
 

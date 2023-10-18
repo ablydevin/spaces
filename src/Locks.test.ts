@@ -392,6 +392,22 @@ describe('Locks', () => {
       expect(lock3).toBeDefined();
     });
 
+    it<SpaceTestContext>('returns the lock by value, not reference', ({ space }) => {
+      const lockGet1 = space.locks.get('lock1');
+      const lockGet2 = space.locks.get('lock1');
+      expect(lockGet1).toEqual(expect.objectContaining({ status: 'locked' }));
+      // Note we are using toBe here on purpose, to check the reference, not value
+      expect(lockGet1).not.toBe(lockGet2);
+    });
+
+    it<SpaceTestContext>('returns locks by value, not reference', async ({ space }) => {
+      const lockGetAll1 = await space.locks.getAll();
+      const lockGetAll2 = await space.locks.getAll();
+      expect(lockGetAll1).toEqual(expect.arrayContaining([expect.objectContaining({ status: 'locked' })]));
+      // Note we are using toBe here on purpose, to check the reference, not value
+      expect(lockGetAll1).not.toBe(expect.arrayContaining(lockGetAll2));
+    });
+
     describe('getSelf', () => {
       it<SpaceTestContext>('returns all locks in the LOCKED state that belong to self', async ({ space }) => {
         const member1 = await space.members.getByConnectionId('1')!;
